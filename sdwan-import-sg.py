@@ -5,7 +5,7 @@
 # ---import tracker sheet and build template csv for import into vManage to cutdown on manual work required to deploy routers---
 # To adapt this code there are two main sections that require updating:
 # Section 1 is the definition of vmanage_dict - each dictionary key maps to a column header which is a variable in a template
-# Section 2 is the main loop that reads the tracker sheet, manipultaes the data and then writes it into the dictionary
+# Section 2 is the main loop that reads the tracker sheet, manipulates the data and then writes it into the dictionary
 
 
 # import openpyxl module
