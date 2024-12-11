@@ -26,7 +26,7 @@ import requests
 import pprint
 import ipaddress
 import sys
-
+import re
 
 # Open the tracker sheet
 
@@ -96,8 +96,13 @@ while tracker_row <= max_row:
         next_hop = (wan_ip.ip) - 1
         # get VLAN tag for WAN port and combine with G0/0/0
         cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=10)
-        wan_tag = cell_obj.value
-        wan_if = 'GigabitEthernet0/0/0' + '.' + str(wan_tag)
+        wan_tag = str(cell_obj.value)
+        wan_tag = wan_tag.lower()
+        if wan_tag == '': wan_tag = 'none'
+        if wan_tag == 'none':
+            wan_if = 'GigabitEthernet0/0/0'
+        else:
+            wan_if = 'GigabitEthernet0/0/0' + '.' + str(wan_tag)
         # get router hostname
         cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=13)
         hostname = cell_obj.value
@@ -151,11 +156,17 @@ while tracker_row <= max_row:
         if '/' in bandwidths:
             downstream = bandwidths.split('/')[0]
             upstream = bandwidths.split('/')[1]
+        elif '_' in bandwidths:
+            downstream = bandwidths.split('_')[0]
+            upstream = bandwidths.split('_')[1]            
         else:
             downstream = bandwidths
             upstream = bandwidths
         downstream = downstream.split('M')[0]
         upstream = upstream.split('M')[0]
+        # remove all non numeric chars from downstream and upstream
+        downstream = re.sub('[^0-9]','', downstream)
+        upstream = re.sub('[^0-9]','', upstream)
         downstream = downstream + '000'
         upstream = upstream + '000'
         vmanage_dict['/0/interface_and_tag/interface/shaping-rate'].append(upstream)
