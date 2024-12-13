@@ -8,7 +8,7 @@
 # Section 2 is the main loop that reads the tracker sheet, manipulates the data and then writes it into the dictionary
 
 
-# import openpyxl module
+
 # openpxyl is a library for handing MS Excel files
 
 import openpyxl
@@ -88,7 +88,8 @@ while tracker_row <= max_row:
         print(f'Row :{tracker_row}  device {device_id}')
         # get the management ip/system ip
         cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=14)
-        loopback_ip = cell_obj.value
+        loopback_ip = str(cell_obj.value)
+        if '/' not in loopback_ip: loopback_ip = loopback_ip + '/32'
         device_ip = loopback_ip.split('/')[0]
         # get the wan ip/prefix length
         cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=8)
@@ -130,19 +131,19 @@ while tracker_row <= max_row:
         #
         vmanage_dict['/500/Loopback0/interface/ip/address'].append(loopback_ip)
         # get vlan5 subnet and add +1 for the router IP
-        cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=16)
+        cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=15)
         vlan_net = ipaddress.ip_network(cell_obj.value)
         # vlan_net is a subnet, the router needs to be assigned the first usable IP address
         # vlan_net[1] is the first usable IP in the network range, but it will have the prefix length stripped off so we add it back on
         vlan5 = str(vlan_net[1]) + '/' + str(vlan_net.prefixlen)
         vmanage_dict['/100/Vlan5/interface/ip/address'].append(vlan5)
         # vget vlan10 subnet and add +1 for the router IP
-        cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=17)
+        cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=16)
         vlan_net = ipaddress.ip_network(cell_obj.value)
         vlan10 = str(vlan_net[1]) + '/' + str(vlan_net.prefixlen)
         vmanage_dict['/100/Vlan10/interface/ip/address'].append(vlan10)
         # vget vlan218 subnet and add +1 for the router IP
-        cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=18)
+        cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=17)
         vlan_net = ipaddress.ip_network(cell_obj.value)
         vlan218 = str(vlan_net[1]) + '/' + str(vlan_net.prefixlen)
         vmanage_dict['/100/Vlan218/interface/ip/address'].append(vlan218)
@@ -223,7 +224,7 @@ vmanage_dict['//system/gps-location/latitude'] = (postcode_df['result_latitude']
 vmanage_dict['//system/gps-location/longitude'] = (postcode_df['result_longitude'].to_list())
 
 # uncomment the next line if you wish to view the dictionary
-#pprint.pprint(vmanage_dict)
+pprint.pprint(vmanage_dict)
 
 # create the dataframe from the dictionary we built
 df = pd.DataFrame(vmanage_dict)
@@ -232,4 +233,4 @@ df = pd.DataFrame(vmanage_dict)
 df.to_csv('~/vmanage-import.csv', index=False)
 
 # all done
-print('vmanage-import.csv has been created :)')
+print('\nvmanage-import.csv has been created :)\n')
