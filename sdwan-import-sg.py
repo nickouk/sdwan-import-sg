@@ -226,7 +226,7 @@ vmanage_dict['//system/gps-location/latitude'] = (postcode_df['result_latitude']
 vmanage_dict['//system/gps-location/longitude'] = (postcode_df['result_longitude'].to_list())
 
 # uncomment the next line if you wish to view the dictionary
-pprint.pprint(vmanage_dict)
+#pprint.pprint(vmanage_dict)
 
 # create the dataframe from the dictionary we built
 df = pd.DataFrame(vmanage_dict)
