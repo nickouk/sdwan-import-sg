@@ -27,6 +27,7 @@ import pprint
 import ipaddress
 import sys
 import re
+import math
 
 # Open the tracker sheet
 
@@ -85,10 +86,12 @@ while tracker_row <= max_row:
         cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=3)
         device_type = cell_obj.value
         device_id = str(device_type) + '-' + str(serial_no)
-        print(f'Row :{tracker_row}  device {device_id}')
+        #print(f'Row :{tracker_row}  device {device_id}')
         # get the management ip/system ip
         cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=14)
         loopback_ip = str(cell_obj.value)
+        if loopback_ip == 'None': 
+            print(f'''>>> Missing loopback IP for {device_id}  Row {tracker_row} <<< Please fix and rerun''')
         if '/' not in loopback_ip: loopback_ip = loopback_ip + '/32'
         device_ip = loopback_ip.split('/')[0]
         # get the wan ip/prefix length
@@ -205,8 +208,8 @@ except requests.HTTPError as error:
     print(f'\nHTTP Error:\n{error}')
     sys.exit()
 
-# CThis was the old error check before try-except implemented heck the response from the API -  200 is good! 400 is bad.  
-#if postcode_lookup.status_code != 200:
+# This was the old error check before try-except implemented check the response from the API -  200 is good! 400 is bad.  
+# if postcode_lookup.status_code != 200:
 #    print (f'API call failed with status code: {postcode_lookup.status_code}')
 #    exit
 
@@ -224,6 +227,16 @@ except requests.exceptions.JSONDecodeError:
 # update the csv dictionary with the lat and long values returned by the API
 vmanage_dict['//system/gps-location/latitude'] = (postcode_df['result_latitude'].to_list())
 vmanage_dict['//system/gps-location/longitude'] = (postcode_df['result_longitude'].to_list())
+
+#pprint.pprint(vmanage_dict['//system/gps-location/latitude'])
+#pprint.pprint(type(vmanage_dict['//system/gps-location/latitude']))
+
+index = 0
+for a in vmanage_dict['//system/gps-location/latitude']:
+    #print(a)
+    if math.isnan(a): 
+        print(f'''>>> Issue with hostname/postcode >>> {vmanage_dict['//system/host-name'][index]} <<< Please fix and rerun''')
+    index = index+1
 
 # uncomment the next line if you wish to view the dictionary
 #pprint.pprint(vmanage_dict)
