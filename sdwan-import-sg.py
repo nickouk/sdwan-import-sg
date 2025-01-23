@@ -32,7 +32,7 @@ import math
 # Open the tracker sheet
 
 tracker_wb_obj = openpyxl.load_workbook(
-    '/home/nicko/Sanctuary -Medium Site - Router config.xlsx')
+    '/home/nicko/Sanctuary -Medium Site - Router config R0.1.xlsx')
 tracker_sheet_obj = tracker_wb_obj.active
 
 max_row = tracker_sheet_obj.max_row
@@ -77,6 +77,13 @@ print (f'{max_row} rows found ...\n')
 
 
 while tracker_row <= max_row:
+    # get the WAN IP and skip this row if not supplied (no circuit details)
+    cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=8)
+    if str(cell_obj.value) == 'None':
+        print(f'Row {tracker_row} has no circuit info - skipping')
+        tracker_row = tracker_row + 1
+        continue
+
     # get the serial no and check it's not a blank row
     cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=4)
     serial_no = cell_obj.value
