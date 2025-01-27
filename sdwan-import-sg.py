@@ -21,6 +21,10 @@ import pandas as pd
 
 import requests
 
+# allows whois lookup for public subnets ; static routes are required on DNAC
+
+from ipwhois import IPWhois
+
 # some standard libraries
 
 import pprint
@@ -35,7 +39,10 @@ tracker_wb_obj = openpyxl.load_workbook(
     '/home/nicko/Sanctuary -Medium Site - Router config R0.1.xlsx')
 tracker_sheet_obj = tracker_wb_obj.active
 
+# initialise some variables
+
 max_row = tracker_sheet_obj.max_row
+public_29_list = []
 
 # define dictionary for the vmanage-import.csv file with all dict keys mapping to csv columns, data will be apended to each key to form rows, one row per device
 
@@ -89,6 +96,15 @@ while tracker_row <= max_row:
     serial_no = cell_obj.value
     #
     if str(serial_no) != 'None':
+        # get routeable 29 network and add it to a list
+        cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=11)
+        routeable_29 = str(cell_obj.value)
+        if '/' not in routeable_29: routeable_29 = routeable_29 + '/29'
+        try:
+            check_valid_ip_net = ipaddress.ip_network(routeable_29)
+            public_29_list.append(routeable_29.split('/')[0])
+        except:
+            ValueError
         # get the router model number
         cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=3)
         device_type = cell_obj.value
@@ -253,6 +269,27 @@ df = pd.DataFrame(vmanage_dict)
 
 # write the dataframe to a csv ready for import into vManage
 df.to_csv('~/vmanage-import.csv', index=False)
+
+# iterate through public /29 networks and do a whois lookup to discover the network block it was assigned from to build a list of routing entries for DNAC
+
+net_block_list = []
+
+print(f'Performing whois lookup. Please wait ...')
+
+for net29 in public_29_list:
+
+    obj = IPWhois(net29)
+    lookup_result = obj.lookup_whois()
+    net_block = lookup_result['nets'][1]['cidr']
+    net_block_list.append(net_block)
+
+mylist = list(dict.fromkeys(net_block_list))
+mylist = list(dict.fromkeys(mylist))
+
+print(f'\nDNAC needs the follwoing route entries adding to the enterpirse interface\n')
+
+pprint.pprint(mylist)
+
 
 # all done
 print('\nvmanage-import.csv has been created :)\n')
