@@ -32,6 +32,7 @@ import ipaddress
 import sys
 import re
 import math
+import pickle
 
 # Open the tracker sheet
 
@@ -283,12 +284,31 @@ for net29 in public_29_list:
     net_block = lookup_result['nets'][1]['cidr']
     net_block_list.append(net_block)
 
-mylist = list(dict.fromkeys(net_block_list))
-mylist = list(dict.fromkeys(mylist))
+net_block_list = list(dict.fromkeys(net_block_list))
+net_block_list = list(dict.fromkeys(net_block_list))
 
 print(f'\nDNAC needs the follwoing route entries adding to the enterpirse interface\n')
 
-pprint.pprint(mylist)
+# read the routing table and display additions since the script was last run
+# report any additional routes required since the last run
+# DNAC routes are stored in dnac_routes.txt
+
+dnac_routes_on_file = []
+
+try:
+    with open('dnac_routes.txt', "r") as f:
+        dnac_routes_on_file = [line.rstrip('\n') for line in f]    
+except:
+    IOError
+
+routes_since_last_run = list(set(net_block_list)-set(dnac_routes_on_file))
+
+print(f'The following routes were not detected the last time this was run and need adding to DNAC:')
+pprint.pprint(routes_since_last_run)
+
+with open('dnac_routes.txt', 'w') as f:
+    for item in net_block_list:
+        f.write(item + '\n')
 
 
 # all done
