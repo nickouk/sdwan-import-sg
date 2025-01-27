@@ -275,19 +275,19 @@ df.to_csv('~/vmanage-import.csv', index=False)
 
 net_block_list = []
 
-print(f'Performing whois lookup. Please wait ...')
+print(f'Performing whois lookup. Please wait ...',end='',flush=True)
 
 for net29 in public_29_list:
-
+    print('.',end='',flush=True)
     obj = IPWhois(net29)
     lookup_result = obj.lookup_whois()
-    net_block = lookup_result['nets'][1]['cidr']
+    #pprint.pprint(lookup_result)
+    #net_block = lookup_result['nets'][1]['cidr']
+    net_block = lookup_result['asn_cidr']
     net_block_list.append(net_block)
 
 net_block_list = list(dict.fromkeys(net_block_list))
 net_block_list = list(dict.fromkeys(net_block_list))
-
-print(f'\nDNAC needs the follwoing route entries adding to the enterpirse interface\n')
 
 # read the routing table and display additions since the script was last run
 # report any additional routes required since the last run
@@ -303,7 +303,7 @@ except:
 
 routes_since_last_run = list(set(net_block_list)-set(dnac_routes_on_file))
 
-print(f'The following routes were not detected the last time this was run and need adding to DNAC:')
+print(f'\n\nThe following routes were not detected the last time this was run and need adding to DNAC:')
 pprint.pprint(routes_since_last_run)
 
 with open('dnac_routes.txt', 'w') as f:
