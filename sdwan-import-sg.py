@@ -6,7 +6,7 @@
 # To adapt this code there are two main sections that require updating:
 # Section 1 is the definition of vmanage_dict - each dictionary key maps to a column header which is a variable in a template
 # Section 2 is the main loop that reads the tracker sheet, manipulates the data and then writes it into the dictionary
-
+# Section 3 performs postcode lookups to obtain GPS coords and gathers a list of routes required for DNAC - the vmanage-import.csv file is written
 
 
 # openpxyl is a library for handing MS Excel files
@@ -303,7 +303,7 @@ except:
 
 routes_since_last_run = list(set(net_block_list)-set(dnac_routes_on_file))
 
-print(f'\n\nThe following routes were not detected the last time this was run and need adding to DNAC:')
+print(f'\n\nThe following routes were not detected the last time this was run and need adding to DNAC (enterpise interface):')
 pprint.pprint(routes_since_last_run)
 
 with open('dnac_routes.txt', 'w') as f:
