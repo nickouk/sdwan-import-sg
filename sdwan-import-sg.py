@@ -252,9 +252,6 @@ except requests.exceptions.JSONDecodeError:
 vmanage_dict['//system/gps-location/latitude'] = (postcode_df['result_latitude'].to_list())
 vmanage_dict['//system/gps-location/longitude'] = (postcode_df['result_longitude'].to_list())
 
-#pprint.pprint(vmanage_dict['//system/gps-location/latitude'])
-#pprint.pprint(type(vmanage_dict['//system/gps-location/latitude']))
-
 index = 0
 for a in vmanage_dict['//system/gps-location/latitude']:
     #print(a)
@@ -286,9 +283,6 @@ for net29 in public_29_list:
     net_block = lookup_result['asn_cidr']
     net_block_list.append(net_block)
 
-net_block_list = list(dict.fromkeys(net_block_list))
-net_block_list = list(dict.fromkeys(net_block_list))
-
 # read the routing table and display additions since the script was last run
 # report any additional routes required since the last run
 # DNAC routes are stored in dnac_routes.txt
@@ -301,9 +295,10 @@ try:
 except:
     IOError
 
+# using the set function removes duplicate items from the list
 routes_since_last_run = list(set(net_block_list)-set(dnac_routes_on_file))
 
-print(f'\n\nThe following routes were not detected the last time this was run and need adding to DNAC (enterpise interface):')
+print(f'\n\nThe following routes were not detected the last time this was run and need adding to DNAC (enterprise interface):')
 pprint.pprint(routes_since_last_run)
 
 with open('dnac_routes.txt', 'w') as f:
