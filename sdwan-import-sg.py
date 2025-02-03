@@ -283,11 +283,12 @@ for net29 in public_29_list:
     net_block = lookup_result['asn_cidr']
     net_block_list.append(net_block)
 
-# read the routing table and display additions since the script was last run
 # report any additional routes required since the last run
 # DNAC routes are stored in dnac_routes.txt
 
 dnac_routes_on_file = []
+# using the set function removes duplicate items from the list
+net_block_list = list(set(net_block_list))
 
 try:
     with open('dnac_routes.txt', "r") as f:
