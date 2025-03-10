@@ -197,7 +197,8 @@ while tracker_row <= max_row:
         downstream = re.sub('[^0-9]','', downstream)
         upstream = re.sub('[^0-9]','', upstream)
         # modify downstream for EoFTTP circuits as only ever get 90Mb down
-        if upstream == '30': downstream = '100'
+        if 'EoFTTP' in bandwidths:
+            downstream = '100'
         downstream = downstream + '000'
         upstream = upstream + '000'
         vmanage_dict['/0/interface_and_tag/interface/shaping-rate'].append(upstream)
