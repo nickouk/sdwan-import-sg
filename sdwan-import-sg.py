@@ -123,6 +123,11 @@ while tracker_row <= max_row:
         if '/' not in cell_obj.value: cell_obj.value = cell_obj.value + '/31' # if no prefix length assume a /31
         wan_ip = ipaddress.ip_interface(cell_obj.value)
         next_hop = (wan_ip.ip) - 1
+        cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=5)
+        mpls = False
+        if cell_obj.value == 'MPLS':
+            next_hop = (wan_ip.ip) + 1 # For MPLS circuits the PE has the odd numbered IP which is the next IP up so +1 instead of -1
+            mpls = True
         # get VLAN tag for WAN port and combine with G0/0/0
         cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=10)
         wan_tag = str(cell_obj.value)
@@ -205,6 +210,8 @@ while tracker_row <= max_row:
         vmanage_dict['/0/interface_and_tag/interface/bandwidth-downstream'].append(downstream)
         # use the public routable network as the provisioning network (Vlan3901) - this guarentees uniqueness and is not routable on the Internet so no security issue
         cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=11)
+        if cell_obj.value is None and mpls is True:
+            cell_obj.value = '1.0.0.0/29' # /29 not present for MPLS
         if '/' not in cell_obj.value: cell_obj.value = cell_obj.value + '/29' # if no prefix length assume a /29
         vlan_net = ipaddress.ip_network(cell_obj.value)
         vlan3901 = str(vlan_net[1]) + '/' + str(vlan_net.prefixlen)
