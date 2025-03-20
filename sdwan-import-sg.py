@@ -123,6 +123,9 @@ while tracker_row <= max_row:
         if '/' not in cell_obj.value: cell_obj.value = cell_obj.value + '/31' # if no prefix length assume a /31
         wan_ip = ipaddress.ip_interface(cell_obj.value)
         next_hop = (wan_ip.ip) - 1
+        if str(wan_ip) == "31.119.4.50/31":
+            # fix the BT f*** up! for this site - IP's wrong way around
+            next_hop = (wan_ip.ip) + 1
         cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=5)
         mpls = False
         if cell_obj.value == 'MPLS':
