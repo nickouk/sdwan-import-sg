@@ -79,7 +79,7 @@ vmanage_dict = {'csv-deviceId': [],
 
 # main loop - loop through the tracker sheet and build rows for the vmanage-import.csv dictionary transforming some of the data
 
-tracker_row = 4
+tracker_row = 2
 postcode_list = []
 print (f'{max_row} rows found ...\n')
 
