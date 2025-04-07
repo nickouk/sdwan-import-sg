@@ -168,7 +168,11 @@ while tracker_row <= max_row:
         vmanage_dict['/500/Loopback0/interface/ip/address'].append(loopback_ip)
         # get vlan5 subnet and add +1 for the router IP
         cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=15)
-        vlan_net = ipaddress.ip_network(cell_obj.value)
+        try:
+            vlan_net = ipaddress.ip_network(cell_obj.value)
+        except ValueError:
+            print(f'Bad Loopback IP on row {tracker_row}:{cell_obj.value}')
+            sys.exit()
         # vlan_net is a subnet, the router needs to be assigned the first usable IP address
         # vlan_net[1] is the first usable IP in the network range, but it will have the prefix length stripped off so we add it back on
         vlan5 = str(vlan_net[1]) + '/' + str(vlan_net.prefixlen)
