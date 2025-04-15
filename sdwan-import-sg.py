@@ -142,7 +142,11 @@ while tracker_row <= max_row:
             wan_if = 'GigabitEthernet0/0/0' + '.' + str(wan_tag)
         # get router hostname
         cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=13)
-        hostname = cell_obj.value
+        hostname = str(cell_obj.value)
+        if " " in hostname:
+            hostname = hostname.replace(" ","")
+            print(f'Removed spaces from hostname: {hostname}')
+
         # extract the siteid from the hostname
         site_type = hostname.split('-')[1]
         site_ref = hostname.split('-')[2]
