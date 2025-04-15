@@ -145,7 +145,7 @@ while tracker_row <= max_row:
         hostname = str(cell_obj.value)
         if " " in hostname:
             hostname = hostname.replace(" ","")
-            print(f'Removed spaces from hostname: {hostname}')
+            print(f'Removed spaces from device: {serial_no} {hostname}')
 
         # extract the siteid from the hostname
         site_type = hostname.split('-')[1]
