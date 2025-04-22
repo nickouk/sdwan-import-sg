@@ -146,7 +146,8 @@ while tracker_row <= max_row:
         if " " in hostname:
             hostname = hostname.replace(" ","")
             print(f'Removed spaces from device: {serial_no} {hostname}')
-
+        # if hostname is missing '-R1' add it
+        if "-R1" not in hostname: hostname = hostname + "-R1"
         # extract the siteid from the hostname
         site_type = hostname.split('-')[1]
         site_ref = hostname.split('-')[2]
@@ -233,6 +234,10 @@ while tracker_row <= max_row:
         vmanage_dict['//switchport/interface/GigabitEthernet0/1/4/shutdown'].append('FALSE')
         vmanage_dict['//switchport/interface/GigabitEthernet0/1/5/shutdown'].append('FALSE')
         # all done, update the row number and run the loop again until all rows have been processed
+    else:
+        print(f'Row {tracker_row} has no router serial number - skipping')
+        tracker_row = tracker_row + 1
+        continue
     tracker_row = tracker_row + 1
 
 # Pass the postcode list we built during the loop to an external site using an API call
