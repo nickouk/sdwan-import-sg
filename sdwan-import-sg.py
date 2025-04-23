@@ -34,6 +34,34 @@ import re
 import math
 import pickle
 
+def postcode_api(postcode_apilist):
+
+	# Function for passing a list of postcodes to an external site for lookup
+	# Correct the postcode format (missing space) and return long + lat values
+	# Send API request, passing in postcodes as a list
+	# NOTE Maximum 100 postcodes
+	
+	postcode_uri = 'https://api.postcodes.io/postcodes'
+	
+	# Raise an exception requests.HTTPException error is response is anything other than 200 (OK)
+	    
+	json={"postcodes": postcode_apilist}
+	postcode_lookup = ''
+	try:
+		postcode_lookup = requests.post(
+			postcode_uri, 
+			json={"postcodes": postcode_apilist}
+		)
+		postcode_lookup.raise_for_status()
+	except requests.exceptions.ConnectionError:
+		print(f'\nConnection error connecting to {postcode_uri}\nvManage import sheet has not been updated\n')
+		sys.exit()
+	except requests.HTTPError as error:
+		print(f'\nHTTP Error:\n{error}')
+		sys.exit()
+
+	return(postcode_lookup)
+
 # Open the tracker sheet
 
 tracker_wb_obj = openpyxl.load_workbook(
@@ -87,7 +115,7 @@ print (f'{max_row} rows found ...\n')
 while tracker_row <= max_row:
     # get the WAN IP and skip this row if not supplied (no circuit details)
     cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=8)
-    if str(cell_obj.value) == 'None':
+    if cell_obj.value is None:
         print(f'Row {tracker_row} has no circuit info - skipping')
         tracker_row = tracker_row + 1
         continue
@@ -96,7 +124,7 @@ while tracker_row <= max_row:
     cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=4)
     serial_no = cell_obj.value
     #
-    if str(serial_no) != 'None':
+    if serial_no != None:
         # get routeable 29 network and add it to a list
         cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=11)
         routeable_29 = str(cell_obj.value)
@@ -109,12 +137,16 @@ while tracker_row <= max_row:
         # get the router model number
         cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=3)
         device_type = cell_obj.value
+        if device_type is None:
+            print(f'Device type missing on row {tracker_row}')
+            tracker_row = tracker_row + 1
+            continue
         device_id = str(device_type) + '-' + str(serial_no)
         #print(f'Row :{tracker_row}  device {device_id}')
         # get the management ip/system ip
         cell_obj = tracker_sheet_obj.cell(row=tracker_row, column=14)
         loopback_ip = str(cell_obj.value)
-        if loopback_ip == 'None': 
+        if loopback_ip is None: 
             print(f'''>>> Missing loopback IP for {device_id}  Row {tracker_row} <<< Please fix and rerun''')
         if '/' not in loopback_ip: loopback_ip = loopback_ip + '/32'
         device_ip = loopback_ip.split('/')[0]
@@ -240,47 +272,35 @@ while tracker_row <= max_row:
         continue
     tracker_row = tracker_row + 1
 
-# Pass the postcode list we built during the loop to an external site using an API call
-# Correct the postcode format (missing space) and return long + lat values
-# Send API request, passing in postcodes as a list
-postcode_uri = 'https://api.postcodes.io/postcodes'
-# Raise an exception requests.HTTPException error is response is anything other than 200 (OK)
-try:
-    postcode_lookup = requests.post(
-        postcode_uri, 
-        json={"postcodes": postcode_list}
-    )
-    postcode_lookup.raise_for_status()
-except requests.exceptions.ConnectionError:
-    print(f'\nConnection error connecting to {postcode_uri}\nvManage import sheet has not been updated\n')
-    sys.exit()
-except requests.HTTPError as error:
-    print(f'\nHTTP Error:\n{error}')
-    sys.exit()
+# Break the postcode list into chunks of 100 as the API has a max 100 limit
 
-# This was the old error check before try-except implemented check the response from the API -  200 is good! 400 is bad.  
-# if postcode_lookup.status_code != 200:
-#    print (f'API call failed with status code: {postcode_lookup.status_code}')
-#    exit
+latlist = []
+longlist = []
 
-print('\nPostcode lookup API success!\n')
+while len(postcode_list) > 100:
+    postcode_max100 = postcode_list[0:100]
+    postcode_result = postcode_api(postcode_max100)
+    postcode_df = pd.json_normalize(postcode_result.json()['result'],sep='_')
+    # update the csv dictionary with the lat and long values returned by the API
+    latlist = latlist + (postcode_df['result_latitude'].to_list())
+    longlist = longlist+ (postcode_df['result_longitude'].to_list())
+    # remove the postcodes we have lookedup from the list
+    postcode_list = postcode_list[100:]
 
-try:
-    postcode_df = pd.json_normalize(
-        postcode_lookup.json()['result'],
-        sep='_'
-        )
-except requests.exceptions.JSONDecodeError:
-    print(f'\nThe site did not return data in a JSON format\nvManage import sheet has not been updated\n')
-    sys.exit()
-
+if len(postcode_list) > 0:
+    postcode_result = postcode_api(postcode_list)
+    postcode_df = pd.json_normalize(postcode_result.json()['result'],sep='_')
+    latlist = latlist + (postcode_df['result_latitude'].to_list())
+    longlist = longlist+ (postcode_df['result_longitude'].to_list())
+    
 # update the csv dictionary with the lat and long values returned by the API
-vmanage_dict['//system/gps-location/latitude'] = (postcode_df['result_latitude'].to_list())
-vmanage_dict['//system/gps-location/longitude'] = (postcode_df['result_longitude'].to_list())
+vmanage_dict['//system/gps-location/latitude'] = latlist
+vmanage_dict['//system/gps-location/longitude'] = longlist
+
+
 
 index = 0
 for a in vmanage_dict['//system/gps-location/latitude']:
-    #print(a)
     if math.isnan(a): 
         print(f'''>>> Issue with hostname/postcode >>> {vmanage_dict['//system/host-name'][index]} <<< Please fix and rerun''')
     index = index+1
