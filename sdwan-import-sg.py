@@ -65,7 +65,9 @@ def postcode_api(postcode_apilist):
 # Open the tracker sheet
 
 tracker_wb_obj = openpyxl.load_workbook(
-    '/home/nicko/Sanctuary -Medium Site - Router config R0.1.xlsx')
+#    '/home/nicko/Sanctuary -Medium Site - Router config R0.1.xlsx')
+# above if using virtualbox, below is the WSL mount point
+    '/mnt/c/tftproot/Sanctuary -Medium Site - Router config R0.1.xlsx')
 tracker_sheet_obj = tracker_wb_obj.active
 
 # initialise some variables
