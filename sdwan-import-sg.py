@@ -67,7 +67,8 @@ def postcode_api(postcode_apilist):
 tracker_wb_obj = openpyxl.load_workbook(
 #    '/home/nicko/Sanctuary -Medium Site - Router config R0.1.xlsx')
 # above if using virtualbox, below is the WSL mount point
-    '/mnt/c/tftproot/Sanctuary -Medium Site - Router config R0.1.xlsx')
+#    '/mnt/c/tftproot/Sanctuary -Medium Site - Router config R0.1.xlsx')
+    '/mnt/c/Users/nick.oneill/Downloads/Sanctuary -Medium Site - Router config R0.1.xlsx')
 tracker_sheet_obj = tracker_wb_obj.active
 
 # initialise some variables
@@ -314,7 +315,8 @@ for a in vmanage_dict['//system/gps-location/latitude']:
 df = pd.DataFrame(vmanage_dict)
 
 # write the dataframe to a csv ready for import into vManage
-df.to_csv('~/vmanage-import.csv', index=False)
+df.to_csv('/mnt/c/Users/nick.oneill/Downloads/vmanage-import.csv', index=False)
+# change dir from ~ to use windows dowloads folder
 
 # iterate through public /29 networks and do a whois lookup to discover the network block it was assigned from to build a list of routing entries for DNAC
 
